@@ -14,6 +14,12 @@ This n8n workflow allows you to generate AI images using the Gemini API by sendi
 2. Import workflow in n8n
 3. Connect it with Telegram, Airtable, or any output node
 
+
+⚠️ Replace `YOUR_GEMINI_API_KEY_HERE` in the HTTP Request node with your own Gemini API key.
+You can get it from: https://makersuite.google.com/app/apikey
+
+<img width="624" height="608" alt="API" src="https://github.com/user-attachments/assets/311137e2-54ab-486e-839b-4b62b60388bc" />
+
 ## Preview
 
 <img width="1361" height="690" alt="workflow pic" src="https://github.com/user-attachments/assets/5ac138bd-a6d6-41cb-9f34-2952dd702f01" />
