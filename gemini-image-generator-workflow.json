@@ -1,0 +1,113 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -780,
+        80
+      ],
+      "id": "d83ab5a5-6753-4c9a-bd2b-bebeb5b8285c",
+      "name": "When chat message received",
+      "webhookId": "754ef007-d03d-4db3-9994-583aa821b60a"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=YOUR_GEMINI_API_KEY_HERE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"contents\": [{\n      \"parts\": [\n        {\"text\": \"{{ $json.chatInput }}\"}\n      ]\n    }],\n    \"generationConfig\":{\"responseModalities\":[\"TEXT\",\"IMAGE\"]}\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        80
+      ],
+      "id": "2e907a5a-fd60-43e2-ac55-49ce70c73bd5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const responseData = item.json.data;\n  if (responseData && responseData.candidates && responseData.candidates.length > 0) {\n    const imageData = responseData.candidates[0].content.parts[0].inlineData.data;\n    const mimeType = responseData.candidates[0].content.parts[0].inlineData.mimeType;\n\n    // n8n expects binary data to be in a specific format for file handling\n    // We’ll add it to the binary property of the item\n    item.binary = item.binary || {};\n    item.binary.image = {\n      data: imageData, // This is the base64 encoded string\n      mimeType: mimeType,\n      fileName: \"gemini-generated-image.png\", // Or whatever you want to name it\n    };\n\n    // You might also want to keep the text part if available\n    const textPart = responseData.candidates[0].content.parts.find(part => part.text);\n    if (textPart) {\n      item.json.generatedText = textPart.text;\n    }\n\n    return item;\n  } else {\n    // Handle cases where no image data is found\n    console.warn(\"No image data found in the response.\");\n    return item;\n  }\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        80
+      ],
+      "id": "dd70645d-8d59-4d1b-8cff-df2edc4660e6",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "candidates[0].content.parts[1].inlineData.data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        80
+      ],
+      "id": "0d58ecf7-ceb9-4ecd-9b99-8202950558ad",
+      "name": "Convert to File"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "59eb42158870530772161f593949b5da0e3e919b34d1804ae14b8a30df66ab28"
+  }
+}
