@@ -24,10 +24,36 @@ You can get it from: https://makersuite.google.com/app/apikey
 
 <img width="1361" height="690" alt="workflow pic" src="https://github.com/user-attachments/assets/5ac138bd-a6d6-41cb-9f34-2952dd702f01" />
 
+## Code Node (JavaScript)
+
+```javascript
+return items.map(item => {
+  const responseData = item.json.data;
+  if (responseData && responseData.candidates && responseData.candidates.length > 0) {
+    const imageData = responseData.candidates[0].content.parts[0].inlineData.data;
+    const mimeType = responseData.candidates[0].content.parts[0].inlineData.mimeType;
+
+    item.binary = item.binary || {};
+    item.binary.image = {
+      data: imageData,
+      mimeType: mimeType,
+      fileName: "gemini-generated-image.png",
+    };
+
+    const textPart = responseData.candidates[0].content.parts.find(part => part.text);
+    if (textPart) {
+      item.json.generatedText = textPart.text;
+    }
+
+    return item;
+  } else {
+    console.warn("No image data found in the response.");
+    return item;
+  }
+});
+```
 ## Files
 
 - `gemini-image-generator-workflow.json` – The full n8n workflow
 - `README.md` – This file 😄
-
----
 
